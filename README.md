@@ -1,5 +1,7 @@
 # PyConv2 
 
+![](https://github.com/maetyu-d/PyConv2/blob/main/Screenshot%202026-02-01%20at%2021.37.05.png)
+
 This build loads Pyodide + NumPy from a CDN and runs the DSP offline *after* it loads.
 
 ## Run
