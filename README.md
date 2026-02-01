@@ -1,4 +1,4 @@
-# Conv2 (CDN Pyodide)
+# PyConv2 
 
 This build loads Pyodide + NumPy from a CDN and runs the DSP offline *after* it loads.
 
@@ -14,18 +14,12 @@ You must use a local static server (ES modules don't work reliably with file://)
 4. Click **Render**
 
 ## Notes
-- Internet is required to fetch Pyodide the first time you click Start.
-- All WAV sample rates must match (input, control wav if used, IR bank). No resampling is implemented.
+- An internet connection is required to fetch Pyodide the first time you click Start.
+- All WAV sample rates must match (input, control wav if used, IR bank) unless resampling is selected.
 
 ## Output processing
 - Optional high-pass filter at 5 Hz or 20 Hz (post-convolution)
 - Optional peak normalize to -0.01 dBFS
-
-
-## UI theme
-Brutalist monochrome ('a symphony in grey') layout with denser controls.
-
-- Click **GREY EDITION** in the header to open a terminal quickstart popup.
 
 ## Resampling
 If enabled (Linear or Windowed Sinc), control WAV + IR bank files are automatically resampled to the input WAV sample rate.
