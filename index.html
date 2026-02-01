@@ -1,0 +1,902 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CONV2</title>
+  <style>
+    :root {
+      --bg:#bcbcbc;
+      --bg2:#a9a9a9;
+      --panel:#cfcfcf;
+      --panel2:#d9d9d9;
+      --line:#6f6f6f;
+      --dark:#3a3a3a;
+      --text:#1b1b1b;
+      --muted:#3f3f3f;
+      --focus:#2b2b2b;
+      --ok:#1f1f1f;
+      --bad:#2f2f2f;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),var(--bg2));
+      color:var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      letter-spacing:.2px;
+    }
+    header{
+      padding:10px 12px;
+      border-bottom:3px solid var(--line);
+      background:repeating-linear-gradient(90deg, #c7c7c7 0 8px, #bdbdbd 8px 16px);
+    }
+    .top{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    h1{
+      margin:0;
+      font-size:16px;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+    .tag{
+      padding:4px 8px;
+      border:2px solid var(--line);
+      background:var(--panel2);
+      font-size:11px;
+      text-transform:uppercase;
+    }
+    .pill{
+      padding:4px 8px;
+      border:2px solid var(--dark);
+      background:#e1e1e1;
+      font-size:11px;
+      text-transform:uppercase;
+    }
+    main{
+      padding:10px 12px 16px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:10px;
+      align-items:start;
+    }
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+
+    .panel{
+      border:3px solid var(--line);
+      background:var(--panel);
+      padding:10px;
+    }
+    .panel h2{
+      margin:0 0 8px;
+      font-size:12px;
+      font-weight:900;
+      text-transform:uppercase;
+      border-bottom:2px solid var(--line);
+      padding-bottom:6px;
+    }
+    .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+    .spacer{flex:1}
+
+    label{
+      display:block;
+      margin-top:8px;
+      font-size:11px;
+      font-weight:800;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+    input[type="file"], input[type="number"], select, textarea{
+      width:100%;
+      margin-top:6px;
+      padding:8px 8px;
+      border:2px solid var(--line);
+      background:#efefef;
+      color:var(--text);
+      outline:none;
+      border-radius:0;
+      font-family: inherit;
+      font-size:12px;
+    }
+    input[type="range"]{ width:100%; margin-top:8px; }
+    textarea{ height:92px; }
+    input:focus, select:focus, textarea:focus{ border-color:var(--focus); background:#f6f6f6; }
+
+    .btn{
+      border:3px solid var(--dark);
+      background:#e6e6e6;
+      color:var(--text);
+      padding:8px 10px;
+      cursor:pointer;
+      text-transform:uppercase;
+      font-weight:900;
+      font-size:12px;
+      border-radius:0;
+    }
+    .btn:disabled{opacity:.45; cursor:not-allowed;}
+    .btn.primary{ background:#dcdcdc; }
+    .btn.ghost{ background:transparent; }
+    .mono{ white-space:pre-wrap; font-size:12px; }
+    .hint{ font-size:11px; color:var(--muted); margin-top:8px; line-height:1.35; }
+    .hr{ height:2px; background:var(--line); margin:10px 0; }
+    details{ border:2px solid var(--line); background:#dedede; padding:8px; margin-top:8px; }
+    summary{ cursor:pointer; font-weight:900; text-transform:uppercase; font-size:11px; }
+    summary::-webkit-details-marker{display:none}
+    .two{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .kpi{ display:grid; grid-template-columns: 1fr; gap:8px; }
+    .box{ border:2px solid var(--line); background:#e3e3e3; padding:8px; }
+    .box .t{ font-size:11px; font-weight:900; text-transform:uppercase; color:var(--muted); }
+    .box .v{ margin-top:6px; }
+    a{ color:#1a1a1a; }
+  
+    /* Modal */
+    .modalOverlay{
+      position:fixed; inset:0;
+      background:rgba(40,40,40,.55);
+      display:none; align-items:center; justify-content:center;
+      padding:14px;
+      z-index:999;
+    }
+    .modal{
+      width:min(760px, 100%);
+      border:3px solid var(--dark);
+      background:#e6e6e6;
+      padding:12px;
+      box-shadow: 10px 10px 0 rgba(0,0,0,.25);
+    }
+    .modalHead{
+      display:flex; gap:8px; align-items:center;
+      border-bottom:2px solid var(--line);
+      padding-bottom:8px; margin-bottom:10px;
+    }
+    .modalTitle{
+      font-weight:900; text-transform:uppercase; font-size:12px;
+    }
+    .modalClose{
+      margin-left:auto;
+      border:3px solid var(--dark);
+      background:transparent;
+      padding:6px 8px;
+      cursor:pointer;
+      font-weight:900;
+      text-transform:uppercase;
+      font-size:12px;
+    }
+    pre.terminal{
+      margin:0;
+      border:2px solid var(--line);
+      background:#f0f0f0;
+      padding:10px;
+      overflow:auto;
+      font-size:12px;
+      line-height:1.35;
+      white-space:pre;
+    }
+    .modalHint{ font-size:11px; color:var(--muted); margin-top:8px; line-height:1.35; }
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>CONV2</h1>
+    <button id="greyHelpBtn" class="tag" type="button" style="cursor:pointer;">INSTRUCTIONS</button>
+    <span id="pyPill" class="pill">PYODIDE: NOT STARTED</span>
+    <span class="spacer"></span>
+    <span class="tag">OFFLINE DSP AFTER LOAD</span>
+  </div>
+</header>
+
+
+<div id="helpOverlay" class="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+  <div class="modal">
+    <div class="modalHead">
+      <div id="helpTitle" class="modalTitle">Run from the terminal</div>
+      <button id="helpClose" class="modalClose" type="button">Close</button>
+    </div>
+
+    <div class="mono" style="font-weight:900; text-transform:uppercase; font-size:11px; color:var(--muted); margin-bottom:6px;">
+      1) start a local server
+    </div>
+    <pre class="terminal"># from the folder that contains index.html, processor.py, README.md
+python -m http.server 8000
+
+# then open in your browser:
+# http://localhost:8000</pre>
+
+    <div class="mono" style="font-weight:900; text-transform:uppercase; font-size:11px; color:var(--muted); margin:10px 0 6px;">
+      2) (optional) use a different port
+    </div>
+    <pre class="terminal">python -m http.server 3000
+# open: http://localhost:3000</pre>
+
+    <div class="mono" style="font-weight:900; text-transform:uppercase; font-size:11px; color:var(--muted); margin:10px 0 6px;">
+      3) if python isn't available
+    </div>
+    <pre class="terminal"># node (one-liner using npx)
+npx serve . -l 8000
+
+# or deno
+deno run --allow-net --allow-read https://deno.land/std/http/file_server.ts . --port 8000</pre>
+
+    <div class="modalHint">
+      Notes: You must use <span class="mono">http://</span> (not <span class="mono">file://</span>) because this app uses ES modules and loads Pyodide from a CDN when you click <b>START PYODIDE</b>.
+    </div>
+  </div>
+</div>
+
+
+<main>
+  <div class="grid">
+    <!-- LEFT: pipeline -->
+    <section class="panel">
+      <h2>ENGINE / FILES / RENDER</h2>
+
+      <div class="row">
+        <button id="startPyBtn" class="btn primary">START PYODIDE</button>
+        <button id="resetPyBtn" class="btn ghost" disabled>RESET</button>
+      </div>
+      <div id="pyStatus" class="hint mono" style="margin-top:8px;">CLICK START PYODIDE TO LOAD RUNTIME (CDN).</div>
+
+      <div class="hr"></div>
+
+      <label>INPUT WAV
+        <input id="inWav" type="file" accept=".wav,audio/wav" />
+      </label>
+
+      <label>IR BANK (MULTIPLE WAVS)
+        <input id="irBank" type="file" accept=".wav,audio/wav" multiple />
+      </label>
+
+      <div class="box" style="margin-top:10px;">
+        <div class="t">SAMPLE RATES</div>
+        <div class="v mono" id="srText">INPUT: —\nCONTROL: —\nBANK: —</div>
+      </div>
+
+      <details>
+        <summary>CONTROL WAV (ONLY IF DRIVER = CONTROL WAV)</summary>
+        <label>CONTROL WAV
+          <input id="ctrlWav" type="file" accept=".wav,audio/wav" />
+        </label>
+      </details>
+
+      <div class="hr"></div>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="t">REQUIREMENTS</div>
+          <div class="v mono" id="reqText">—</div>
+        </div>
+        <div class="box">
+          <div class="t">OUTPUT</div>
+          <div class="v">
+            <div class="row">
+              <button id="renderBtn" class="btn primary" disabled>RENDER</button>
+              <button id="playBtn" class="btn" disabled>PLAY</button>
+              <span class="spacer"></span>
+              <a id="dl" style="display:none;">DOWNLOAD WAV</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <details>
+        <summary>LOG</summary>
+        <div id="log" class="mono" style="margin-top:8px;"></div>
+      </details>
+
+      <div class="hint">
+        FAST MODE: SMALLER IR BANK + SHORTER IRS. SWITCHING RATE = BLOCK SIZE.
+      </div>
+    </section>
+
+    <!-- RIGHT: controls -->
+    <section class="panel">
+      <h2>CONTROLS</h2>
+
+      <div class="two">
+        <label>INDEX SOURCE
+          <select id="bankIndexMode">
+            <option value="random" selected>RANDOM (UNIFORM)</option>
+            <option value="from_driver">FROM DRIVER (A→INDEX)</option>
+            <option value="round_robin">ROUND ROBIN</option>
+          </select>
+        </label>
+        <label>UPDATE TIMING
+          <select id="bankHold">
+            <option value="hold" selected>ON ONSETS (HOLD BETWEEN)</option>
+            <option value="always">EVERY BLOCK</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="two">
+        <label>SEED (OPTIONAL)
+          <input id="randSeed" type="number" step="1" placeholder="1234" />
+        </label>
+        <label>BLOCK SIZE
+          <select id="blockSize">
+            <option>1024</option>
+            <option selected>2048</option>
+            <option>4096</option>
+          </select>
+        </label>
+      </div>
+
+      <label>PARTITION SIZE (IR)
+        <select id="partSize">
+          <option>1024</option>
+          <option selected>2048</option>
+          <option>4096</option>
+        </select>
+      </label>
+
+      <details open>
+        <summary>ONSET DETECTOR</summary>
+        <div class="two">
+          <label>ONSETS
+            <select id="onsetEnable">
+              <option value="1" selected>ENABLED</option>
+              <option value="0">DISABLED</option>
+            </select>
+          </label>
+          <label>METHOD
+            <select id="onsetMethod">
+              <option value="energy" selected>ENERGY</option>
+              <option value="spectral_flux">SPECTRAL FLUX</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="two">
+          <label>THRESHOLD
+            <input id="onsetThresh" type="number" min="0" step="0.1" value="2.5" />
+          </label>
+          <label>MIN INTERVAL (MS)
+            <input id="onsetMinIntervalMs" type="number" min="0" step="1" value="80" />
+          </label>
+        </div>
+
+        <label>SMOOTHING (FRAMES)
+          <input id="onsetSmoothFrames" type="number" min="0" step="1" value="2" />
+        </label>
+
+        <div class="hint">ONLY USED WHEN UPDATE TIMING = ON ONSETS.</div>
+      </details>
+
+      <details>
+        <summary>DRIVER (ONLY IF INDEX SOURCE = FROM DRIVER)</summary>
+
+        <label>DRIVER
+          <select id="driver">
+            <option value="static" selected>STATIC SLIDER</option>
+            <option value="ramp">RAMP</option>
+            <option value="control_wav">CONTROL WAV</option>
+            <option value="envelope">ENVELOPE FOLLOWER</option>
+            <option value="lfo">LFO</option>
+            <option value="automation">AUTOMATION</option>
+          </select>
+        </label>
+
+        <div id="driverStatic">
+          <label>STATIC A (0..1)
+            <input id="morph" type="range" min="0" max="1" step="0.001" value="0.5" />
+            <div class="mono" id="morphVal">0.500</div>
+          </label>
+        </div>
+
+        <div id="driverRamp" style="display:none;">
+          <div class="two">
+            <label>RAMP START
+              <input id="rampStart" type="number" min="0" max="1" step="0.001" value="0.0" />
+            </label>
+            <label>RAMP END
+              <input id="rampEnd" type="number" min="0" max="1" step="0.001" value="1.0" />
+            </label>
+          </div>
+        </div>
+
+        <div id="driverControlWav" style="display:none;">
+          <div class="two">
+            <label>MEASURE
+              <select id="ctrlMeasure">
+                <option value="abs_mean" selected>ABS MEAN</option>
+                <option value="rms">RMS</option>
+                <option value="peak">PEAK</option>
+              </select>
+            </label>
+            <label>SMOOTHING (MS)
+              <input id="ctrlSmoothMs" type="number" min="0" step="1" value="20" />
+            </label>
+          </div>
+          <label>NORMALIZE CONTROL
+            <select id="ctrlNorm">
+              <option value="minmax" selected>MIN/MAX</option>
+              <option value="percentile">PERCENTILE (5..95)</option>
+              <option value="none">NONE</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="driverEnvelope" style="display:none;">
+          <div class="two">
+            <label>ATTACK (MS)
+              <input id="envAttackMs" type="number" min="0.1" step="0.1" value="5" />
+            </label>
+            <label>RELEASE (MS)
+              <input id="envReleaseMs" type="number" min="0.1" step="0.1" value="60" />
+            </label>
+          </div>
+          <div class="two">
+            <label>DETECTOR
+              <select id="envDetector">
+                <option value="abs" selected>ABS</option>
+                <option value="rms">RMS</option>
+              </select>
+            </label>
+            <label>NORMALIZE
+              <select id="envNorm">
+                <option value="percentile" selected>PERCENTILE (5..95)</option>
+                <option value="minmax">MIN/MAX</option>
+                <option value="none">NONE</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="driverLfo" style="display:none;">
+          <div class="two">
+            <label>RATE (HZ)
+              <input id="lfoRate" type="number" min="0" step="0.01" value="0.25" />
+            </label>
+            <label>PHASE (0..1)
+              <input id="lfoPhase" type="number" min="0" max="1" step="0.001" value="0" />
+            </label>
+          </div>
+          <div class="two">
+            <label>DEPTH
+              <input id="lfoDepth" type="number" min="0" max="1" step="0.001" value="1" />
+            </label>
+            <label>OFFSET
+              <input id="lfoOffset" type="number" min="0" max="1" step="0.001" value="0.5" />
+            </label>
+          </div>
+          <label>SHAPE
+            <select id="lfoShape">
+              <option value="sine" selected>SINE</option>
+              <option value="triangle">TRIANGLE</option>
+              <option value="square">SQUARE</option>
+              <option value="saw">SAW</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="driverAutomation" style="display:none;">
+          <label>AUTOMATION JSON ([TIME_SEC, VALUE]…)
+            <textarea id="autoJson">[[0.0, 0.0], [1.0, 1.0], [2.0, 0.2]]</textarea>
+          </label>
+          <label>INTERPOLATION
+            <select id="autoInterp">
+              <option value="linear" selected>LINEAR</option>
+              <option value="step">STEP</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <details>
+        <summary>NESTED CONVOLUTION</summary>
+        <label><input id="nestEnable" type="checkbox" /> ENABLE</label>
+        <label>MODE
+          <select id="nestMode">
+            <option value="ir_within_ir" selected>IR WITHIN IR (SQUARE)</option>
+            <option value="two_stage">TWO STAGE</option>
+          </select>
+        </label>
+      </details>
+
+      
+      <details>
+        <summary>RESAMPLING</summary>
+        <label>MODE
+          <select id="resampleMode">
+            <option value="off">OFF (REQUIRE MATCHING SR)</option>
+            <option value="linear" selected>LINEAR (FAST)</option>
+            <option value="sinc">WINDOWED SINC (BETTER)</option>
+          </select>
+        </label>
+        <div class="hint">IF ENABLED, CONTROL WAV + IR BANK FILES ARE RESAMPLED TO THE INPUT WAV SAMPLE RATE.</div>
+      </details>
+
+      <details>
+        <summary>OUTPUT PROCESSING</summary>
+        <div class="two">
+          <label>HIGH-PASS
+            <select id="outHpf">
+              <option value="0" selected>OFF</option>
+              <option value="5">5 HZ</option>
+              <option value="20">20 HZ</option>
+            </select>
+          </label>
+          <label>NORMALIZE
+            <select id="outNorm">
+              <option value="0" selected>OFF</option>
+              <option value="1">ON (PEAK)</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <div class="hint">CONSTRAINT: SAMPLE RATES MUST MATCH. NO RESAMPLING.</div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+  import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.mjs";
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    // engine
+    startPyBtn: $("startPyBtn"), resetPyBtn: $("resetPyBtn"),
+    pyPill: $("pyPill"), pyStatus: $("pyStatus"),
+    // files
+    inWav: $("inWav"), irBank: $("irBank"), ctrlWav: $("ctrlWav"),
+    // render
+    renderBtn: $("renderBtn"), playBtn: $("playBtn"), dl: $("dl"),
+    log: $("log"), reqText: $("reqText"),
+    // basic params
+    bankIndexMode: $("bankIndexMode"), bankHold: $("bankHold"), randSeed: $("randSeed"),
+    blockSize: $("blockSize"), partSize: $("partSize"),
+    onsetEnable: $("onsetEnable"), onsetMethod: $("onsetMethod"),
+    onsetThresh: $("onsetThresh"), onsetMinIntervalMs: $("onsetMinIntervalMs"), onsetSmoothFrames: $("onsetSmoothFrames"),
+    // driver
+    driver: $("driver"),
+    morph: $("morph"), morphVal: $("morphVal"),
+    rampStart: $("rampStart"), rampEnd: $("rampEnd"),
+    ctrlMeasure: $("ctrlMeasure"), ctrlSmoothMs: $("ctrlSmoothMs"), ctrlNorm: $("ctrlNorm"),
+    envAttackMs: $("envAttackMs"), envReleaseMs: $("envReleaseMs"), envDetector: $("envDetector"), envNorm: $("envNorm"),
+    lfoRate: $("lfoRate"), lfoPhase: $("lfoPhase"), lfoDepth: $("lfoDepth"), lfoOffset: $("lfoOffset"), lfoShape: $("lfoShape"),
+    autoJson: $("autoJson"), autoInterp: $("autoInterp"),
+    // driver panels
+    driverStatic: $("driverStatic"), driverRamp: $("driverRamp"),
+    driverControlWav: $("driverControlWav"), driverEnvelope: $("driverEnvelope"),
+    driverLfo: $("driverLfo"), driverAutomation: $("driverAutomation"),
+    // nested
+    nestEnable: $("nestEnable"), nestMode: $("nestMode"),
+    // resampling
+    resampleMode: $("resampleMode"),
+    // output
+    outHpf: $("outHpf"), outNorm: $("outNorm"),
+  };
+
+  let pyodide = null;
+  let pyState = "not_started"; // not_started | loading | ready | error
+  let outUrl = null;
+  let audioCtx = null;
+  let decodedBuffer = null;
+
+  function setPill(state, msg){
+    pyState = state;
+    if (state === "ready"){
+      els.pyPill.className = "pill good";
+      els.pyPill.textContent = "Pyodide: ready";
+    } else if (state === "loading"){
+      els.pyPill.className = "pill";
+      els.pyPill.textContent = "Pyodide: loading…";
+    } else if (state === "error"){
+      els.pyPill.className = "pill bad";
+      els.pyPill.textContent = "Pyodide: error";
+    } else {
+      els.pyPill.className = "pill bad";
+      els.pyPill.textContent = "Pyodide: not started";
+    }
+    if (msg) els.pyStatus.textContent = msg;
+    validateReady();
+  }
+
+  function log(msg){
+    els.log.textContent += msg + "\n";
+    els.log.scrollTop = els.log.scrollHeight;
+  }
+
+  function showDriverUI(){
+    const d = els.driver.value;
+    els.driverStatic.style.display = (d === "static") ? "" : "none";
+    els.driverRamp.style.display = (d === "ramp") ? "" : "none";
+    els.driverControlWav.style.display = (d === "control_wav") ? "" : "none";
+    els.driverEnvelope.style.display = (d === "envelope") ? "" : "none";
+    els.driverLfo.style.display = (d === "lfo") ? "" : "none";
+    els.driverAutomation.style.display = (d === "automation") ? "" : "none";
+    validateReady();
+  }
+  els.driver.addEventListener("change", showDriverUI);
+
+  function setMorphLabel(){
+    els.morphVal.textContent = Number(els.morph.value).toFixed(3);
+  }
+  els.morph.addEventListener("input", setMorphLabel);
+  setMorphLabel();
+
+  async function fileToBytes(file){
+    const ab = await file.arrayBuffer();
+    return new Uint8Array(ab);
+  }
+  async function filesToBytesList(fileList){
+    const out = [];
+    for (const f of fileList) out.push(await fileToBytes(f));
+    return out;
+  }
+
+
+  async function readWavSampleRate(file){
+    try{
+      const buf = await file.arrayBuffer();
+      const dv = new DataView(buf);
+      function str4(off){
+        return String.fromCharCode(dv.getUint8(off), dv.getUint8(off+1), dv.getUint8(off+2), dv.getUint8(off+3));
+      }
+      if (str4(0) !== "RIFF" || str4(8) !== "WAVE") return {ok:false, err:"not RIFF/WAVE"};
+      let off = 12;
+      let sr = null, ch = null;
+      while (off + 8 <= dv.byteLength){
+        const id = str4(off);
+        const sz = dv.getUint32(off+4, true);
+        const dataOff = off + 8;
+        if (id === "fmt "){
+          ch = dv.getUint16(dataOff + 2, true);
+          sr = dv.getUint32(dataOff + 4, true);
+          break;
+        }
+        off = dataOff + sz + (sz % 2);
+      }
+      if (sr === null) return {ok:false, err:"missing fmt chunk"};
+      return {ok:true, sr, ch};
+    }catch(e){
+      return {ok:false, err:(e?.message ?? String(e))};
+    }
+  }
+
+  function fmtSr(x){
+    if (!x || !x.ok) return "—";
+    return `${x.sr} Hz${(x.ch!=null?(" / "+x.ch+"ch"):"")}`;
+  }
+
+  async function updateSampleRateDisplay(){
+    const mode = (els.resampleMode?.value ?? "off").toLowerCase();
+
+    let inInfo = null, ctrlInfo = null;
+    if (els.inWav.files.length) inInfo = await readWavSampleRate(els.inWav.files[0]);
+    if (els.ctrlWav.files.length) ctrlInfo = await readWavSampleRate(els.ctrlWav.files[0]);
+
+    let bankSrs = [];
+    const bankFiles = Array.from(els.irBank.files);
+    for (let i=0; i<bankFiles.length; i++){
+      const info = await readWavSampleRate(bankFiles[i]);
+      if (info.ok) bankSrs.push(info.sr);
+    }
+    const uniq = [...new Set(bankSrs)].sort((a,b)=>a-b);
+
+    let bankLine = "—";
+    if (bankFiles.length === 0){
+      bankLine = "—";
+    } else if (uniq.length === 0){
+      bankLine = "unreadable";
+    } else if (uniq.length === 1){
+      bankLine = `${uniq[0]} Hz (${bankFiles.length} file${bankFiles.length===1?"":"s"})`;
+    } else {
+      bankLine = `${uniq.join(", ")} Hz (${bankFiles.length} files)`;
+    }
+
+    const targetSr = (inInfo && inInfo.ok) ? inInfo.sr : null;
+    let note = "";
+    if (targetSr && mode !== "off"){
+      const needsCtrl = (ctrlInfo && ctrlInfo.ok && ctrlInfo.sr !== targetSr);
+      const needsBank = uniq.some(sr => sr !== targetSr);
+      if (needsCtrl || needsBank){
+        note = `\nRESAMPLE → ${targetSr} Hz (${mode})`;
+      } else {
+        note = `\nNO RESAMPLE NEEDED`;
+      }
+    } else if (targetSr && mode === "off"){
+      const mismatchCtrl = (ctrlInfo && ctrlInfo.ok && ctrlInfo.sr !== targetSr);
+      const mismatchBank = uniq.some(sr => sr !== targetSr);
+      if (mismatchCtrl || mismatchBank){
+        note = `\nMISMATCH (RESAMPLING OFF)`;
+      }
+    }
+
+    const srText = `INPUT: ${fmtSr(inInfo)}\nCONTROL: ${fmtSr(ctrlInfo)}\nBANK: ${bankLine}${note}`;
+    const el = document.getElementById("srText");
+    if (el) el.textContent = srText;
+  }
+
+
+  function validateReady(){
+    const hasPy = (pyState === "ready");
+    const hasInput = els.inWav.files.length > 0;
+    const hasBank = els.irBank.files.length > 0;
+
+    const needsCtrl = (els.driver.value === "control_wav") && (els.bankIndexMode.value === "from_driver");
+    const hasCtrl = els.ctrlWav.files.length > 0;
+
+    const missing = [];
+    if (!hasPy) missing.push("Start Pyodide");
+    if (!hasInput) missing.push("Select input WAV");
+    if (!hasBank) missing.push("Select ≥1 IR bank file");
+    if (needsCtrl && !hasCtrl) missing.push("Select control WAV (driver)");
+
+    els.reqText.textContent = missing.length ? ("Missing:\n- " + missing.join("\n- ")) : "All good ✅";
+    els.renderBtn.disabled = missing.length !== 0;
+
+    // only enable reset if pyodide is started
+    els.resetPyBtn.disabled = !(pyState === "ready" || pyState === "loading" || pyState === "error");
+  }
+
+  [els.inWav, els.irBank, els.ctrlWav, els.bankIndexMode, els.driver].forEach(el=>{
+    el.addEventListener("change", validateReady);
+  });
+
+  async function startPyodide(){
+    if (pyState === "loading" || pyState === "ready") return;
+
+    els.log.textContent = "";
+    setPill("loading", "Pyodide: loading core…");
+    els.startPyBtn.disabled = true;
+
+    try{
+      pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/" });
+      setPill("loading", "Pyodide: core loaded, loading NumPy…");
+      await pyodide.loadPackage(["numpy"]);
+      setPill("loading", "Pyodide: NumPy loaded, loading processor.py…");
+      const pyCode = await (await fetch("./processor.py")).text();
+      pyodide.runPython(pyCode);
+      setPill("ready", "Pyodide: ready ✅");
+      els.startPyBtn.disabled = true;
+    } catch(err){
+      console.error(err);
+      setPill("error", "Pyodide: ERROR ❌ " + (err?.message ?? err));
+      els.startPyBtn.disabled = false;
+      return;
+    } finally {
+      validateReady();
+    }
+  }
+
+  function resetPyodide(){
+    // In-page reset: drop refs; user can start again.
+    pyodide = null;
+    decodedBuffer = null;
+    if (outUrl) URL.revokeObjectURL(outUrl);
+    outUrl = null;
+    els.dl.style.display = "none";
+    els.playBtn.disabled = true;
+    els.startPyBtn.disabled = false;
+    setPill("not_started", "Click “Start Pyodide” to load the runtime (CDN).");
+  }
+
+  async function render(){
+    els.log.textContent = "";
+    log("Reading files…");
+
+    const inBytes = await fileToBytes(els.inWav.files[0]);
+    const bankBytesList = await filesToBytesList(els.irBank.files);
+
+    let ctrlBytes = new Uint8Array();
+    const needsCtrl = (els.driver.value === "control_wav") && (els.bankIndexMode.value === "from_driver");
+    if (needsCtrl) ctrlBytes = await fileToBytes(els.ctrlWav.files[0]);
+
+    const opts = {
+      block_size: parseInt(els.blockSize.value, 10),
+      part_size: parseInt(els.partSize.value, 10),
+
+      bank_index_mode: els.bankIndexMode.value, // random | from_driver | round_robin
+      bank_hold: els.bankHold.value,            // hold | always
+      rand_seed: (els.randSeed.value === "" ? null : parseInt(els.randSeed.value, 10)),
+
+      driver: els.driver.value,
+      morph: parseFloat(els.morph.value),
+      ramp_start: parseFloat(els.rampStart.value),
+      ramp_end: parseFloat(els.rampEnd.value),
+
+      ctrl_measure: els.ctrlMeasure.value,
+      ctrl_smooth_ms: parseFloat(els.ctrlSmoothMs.value),
+      ctrl_norm: els.ctrlNorm.value,
+
+      env_attack_ms: parseFloat(els.envAttackMs.value),
+      env_release_ms: parseFloat(els.envReleaseMs.value),
+      env_detector: els.envDetector.value,
+      env_norm: els.envNorm.value,
+
+      lfo_rate_hz: parseFloat(els.lfoRate.value),
+      lfo_phase: parseFloat(els.lfoPhase.value),
+      lfo_depth: parseFloat(els.lfoDepth.value),
+      lfo_offset: parseFloat(els.lfoOffset.value),
+      lfo_shape: els.lfoShape.value,
+
+      auto_json: els.autoJson.value,
+      auto_interp: els.autoInterp.value,
+
+      onset_enable: els.onsetEnable.value === "1",
+      onset_method: els.onsetMethod.value,
+      onset_min_interval_ms: parseFloat(els.onsetMinIntervalMs.value),
+      onset_thresh: parseFloat(els.onsetThresh.value),
+      onset_smooth_frames: parseInt(els.onsetSmoothFrames.value, 10),
+
+      nest_enable: els.nestEnable.checked,
+      nest_mode: els.nestMode.value,
+
+      resample_mode: els.resampleMode.value,
+
+      out_hpf_hz: parseFloat(els.outHpf.value),
+      out_normalize: (els.outNorm.value === "1"),
+    };
+
+    log("Processing in Python…");
+    const t0 = performance.now();
+
+    pyodide.globals.set("IN_WAV_BYTES", inBytes);
+    pyodide.globals.set("CTRL_WAV_BYTES", ctrlBytes);
+    pyodide.globals.set("IR_BANK_LIST", pyodide.toPy(bankBytesList));
+    pyodide.globals.set("OPTS", pyodide.toPy(opts));
+
+    const out = pyodide.runPython("process_bytes(IN_WAV_BYTES, OPTS, CTRL_WAV_BYTES, IR_BANK_LIST)");
+    const outWavBytes = out.toJs({ create_proxies: false });
+    out.destroy?.();
+
+    const t1 = performance.now();
+    log(`Done. Render time: ${(t1 - t0).toFixed(0)} ms`);
+
+    if (outUrl) URL.revokeObjectURL(outUrl);
+    const blob = new Blob([outWavBytes], { type: "audio/wav" });
+    outUrl = URL.createObjectURL(blob);
+
+    els.dl.href = outUrl;
+    els.dl.download = "output.wav";
+    els.dl.style.display = "inline";
+    els.dl.textContent = "Download WAV";
+
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    decodedBuffer = await audioCtx.decodeAudioData(await blob.arrayBuffer());
+    els.playBtn.disabled = false;
+  }
+
+  function play(){
+    if (!decodedBuffer) return;
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const src = audioCtx.createBufferSource();
+    src.buffer = decodedBuffer;
+    src.connect(audioCtx.destination);
+    src.start();
+  }
+
+  els.startPyBtn.addEventListener("click", startPyodide);
+  els.resetPyBtn.addEventListener("click", resetPyodide);
+  els.renderBtn.addEventListener("click", render);
+  els.playBtn.addEventListener("click", play);
+
+  // initial UI
+  showDriverUI();
+  validateReady();
+  updateSampleRateDisplay();
+</script>
+<script>
+(function(){
+  const btn = document.getElementById('greyHelpBtn');
+  const ov  = document.getElementById('helpOverlay');
+  const cls = document.getElementById('helpClose');
+  function open(){ ov.style.display='flex'; }
+  function close(){ ov.style.display='none'; }
+  btn?.addEventListener('click', open);
+  cls?.addEventListener('click', close);
+  ov?.addEventListener('click', (e)=>{ if(e.target===ov) close(); });
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
+})();
+</script>
+</body>
+</html>
